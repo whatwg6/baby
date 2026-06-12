@@ -163,11 +163,30 @@ describe("validateDraft", () => {
     ).toEqual(["睡眠开始时间格式不正确", "睡眠结束时间格式不正确"]);
   });
 
+  it("rejects impossible local sleep calendar dates and accepts valid leap days", () => {
+    expect(
+      validateDraft(
+        sleepDraft({
+          startTime: "2026-02-31T09:00",
+          endTime: "2026-03-01T10:00",
+        }),
+      ),
+    ).toEqual(["睡眠开始时间格式不正确"]);
+    expect(
+      validateDraft(
+        sleepDraft({
+          startTime: "2024-02-29T09:00",
+          endTime: "2024-02-29T10:00",
+        }),
+      ),
+    ).toEqual([]);
+  });
+
   it("rejects sleep drafts whose end time is before the start time", () => {
     const draft = sleepDraft({
-        startTime: "2026-06-12T10:00:00.000Z",
-        endTime: "2026-06-12T09:30:00.000Z",
-      });
+      startTime: "2026-06-12T10:00:00.000Z",
+      endTime: "2026-06-12T09:30:00.000Z",
+    });
 
     expect(validateDraft(draft)).toEqual(["睡眠结束时间不能早于开始时间"]);
   });

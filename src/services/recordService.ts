@@ -36,6 +36,73 @@ function parseTimestamp(value: string): number | undefined {
   return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
+function parseSleepTimestamp(value: string): number | undefined {
+  const localDateTimeMatch = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/,
+  );
+
+  if (localDateTimeMatch) {
+    const [, yearValue, monthValue, dayValue, hourValue, minuteValue, secondValue = "00", millisecondValue = "0"] =
+      localDateTimeMatch;
+    const year = Number(yearValue);
+    const monthIndex = Number(monthValue) - 1;
+    const day = Number(dayValue);
+    const hour = Number(hourValue);
+    const minute = Number(minuteValue);
+    const second = Number(secondValue);
+    const millisecond = Number(millisecondValue.padEnd(3, "0"));
+    const date = new Date(year, monthIndex, day, hour, minute, second, millisecond);
+
+    if (
+      date.getFullYear() === year &&
+      date.getMonth() === monthIndex &&
+      date.getDate() === day &&
+      date.getHours() === hour &&
+      date.getMinutes() === minute &&
+      date.getSeconds() === second &&
+      date.getMilliseconds() === millisecond
+    ) {
+      return date.getTime();
+    }
+
+    return undefined;
+  }
+
+  const utcDateTimeMatch = value.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?Z$/,
+  );
+
+  if (!utcDateTimeMatch) {
+    return undefined;
+  }
+
+  const [, yearValue, monthValue, dayValue, hourValue, minuteValue, secondValue = "00", millisecondValue = "0"] =
+    utcDateTimeMatch;
+  const year = Number(yearValue);
+  const monthIndex = Number(monthValue) - 1;
+  const day = Number(dayValue);
+  const hour = Number(hourValue);
+  const minute = Number(minuteValue);
+  const second = Number(secondValue);
+  const millisecond = Number(millisecondValue.padEnd(3, "0"));
+  const timestamp = Date.UTC(year, monthIndex, day, hour, minute, second, millisecond);
+  const date = new Date(timestamp);
+
+  if (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === monthIndex &&
+    date.getUTCDate() === day &&
+    date.getUTCHours() === hour &&
+    date.getUTCMinutes() === minute &&
+    date.getUTCSeconds() === second &&
+    date.getUTCMilliseconds() === millisecond
+  ) {
+    return timestamp;
+  }
+
+  return undefined;
+}
+
 export function validateDraft(draft: RecordDraft): string[] {
   const errors: string[] = [];
 
@@ -71,8 +138,8 @@ export function validateDraft(draft: RecordDraft): string[] {
         errors.push("请选择睡眠结束时间");
       }
 
-      const startTime = parseTimestamp(draft.payload.startTime);
-      const endTime = parseTimestamp(draft.payload.endTime);
+      const startTime = parseSleepTimestamp(draft.payload.startTime);
+      const endTime = parseSleepTimestamp(draft.payload.endTime);
       if (!isBlank(draft.payload.startTime) && startTime === undefined) {
         errors.push("睡眠开始时间格式不正确");
       }
