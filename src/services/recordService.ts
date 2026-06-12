@@ -1,5 +1,5 @@
 import type { BabyRecord, RecordDraft } from "../domain/types";
-import { minutesBetween } from "../lib/date";
+import { minutesBetween, toDayKey } from "../lib/date";
 
 export type GrowthPoint = {
   date: string;
@@ -28,6 +28,12 @@ function hasGrowthMeasurement(payload: RecordDraft<"growth">["payload"]): boolea
 
 function formatNumber(value: number): string {
   return Number.isInteger(value) ? `${value}` : `${value}`;
+}
+
+function parseTimestamp(value: string): number | undefined {
+  const timestamp = Date.parse(value);
+
+  return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
 export function validateDraft(draft: RecordDraft): string[] {
@@ -65,9 +71,15 @@ export function validateDraft(draft: RecordDraft): string[] {
         errors.push("请选择睡眠结束时间");
       }
 
-      const startTime = Date.parse(draft.payload.startTime);
-      const endTime = Date.parse(draft.payload.endTime);
-      if (Number.isFinite(startTime) && Number.isFinite(endTime) && endTime < startTime) {
+      const startTime = parseTimestamp(draft.payload.startTime);
+      const endTime = parseTimestamp(draft.payload.endTime);
+      if (!isBlank(draft.payload.startTime) && startTime === undefined) {
+        errors.push("睡眠开始时间格式不正确");
+      }
+      if (!isBlank(draft.payload.endTime) && endTime === undefined) {
+        errors.push("睡眠结束时间格式不正确");
+      }
+      if (startTime !== undefined && endTime !== undefined && endTime < startTime) {
         errors.push("睡眠结束时间不能早于开始时间");
       }
       break;
@@ -119,9 +131,28 @@ export function summarizeRecord(record: BabyRecord): string {
 export function buildGrowthSeries(records: BabyRecord[]): GrowthPoint[] {
   return records
     .filter((record): record is BabyRecord<"growth"> => record.type === "growth")
-    .sort((left, right) => left.occurredAt.localeCompare(right.occurredAt))
-    .map((record) => ({
-      date: record.occurredAt.slice(0, 10),
+    .flatMap((record) => {
+      const occurredAtTime = parseTimestamp(record.occurredAt);
+
+      if (occurredAtTime === undefined) {
+        return [];
+      }
+
+      try {
+        return [
+          {
+            record,
+            occurredAtTime,
+            date: toDayKey(record.occurredAt),
+          },
+        ];
+      } catch {
+        return [];
+      }
+    })
+    .sort((left, right) => left.occurredAtTime - right.occurredAtTime)
+    .map(({ date, record }) => ({
+      date,
       heightCm: record.payload.heightCm,
       weightKg: record.payload.weightKg,
       headCircumferenceCm: record.payload.headCircumferenceCm,
