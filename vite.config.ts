@@ -1,5 +1,5 @@
 import react from "@vitejs/plugin-react";
-import type { UserConfig } from "vite";
+import type { ConfigEnv, UserConfig } from "vite";
 
 type VitestConfig = UserConfig & {
   test: {
@@ -9,13 +9,16 @@ type VitestConfig = UserConfig & {
   };
 };
 
-const config: VitestConfig = {
-  plugins: [react()],
-  test: {
-    environment: "jsdom",
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
-    setupFiles: ["src/test/setup.ts"],
-  },
-};
+function config({ command }: ConfigEnv): VitestConfig {
+  return {
+    base: command === "build" ? "/baby/" : "/",
+    plugins: [react()],
+    test: {
+      environment: "jsdom",
+      include: ["src/**/*.{test,spec}.{ts,tsx}"],
+      setupFiles: ["src/test/setup.ts"],
+    },
+  };
+}
 
 export default config;
