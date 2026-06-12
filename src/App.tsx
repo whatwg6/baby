@@ -2,7 +2,9 @@ import { useState } from "react";
 import { AppShell } from "./components/layout/AppShell";
 import { RecordComposer } from "./components/records/RecordComposer";
 import type { RecordDraft, RecordType } from "./domain/types";
+import { DataPage } from "./pages/DataPage";
 import { HomePage } from "./pages/HomePage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { TimelinePage } from "./pages/TimelinePage";
 import { useBabyApp } from "./state/useBabyApp";
 
@@ -52,12 +54,15 @@ export default function App() {
       return <TimelinePage records={app.visibleRecords} filter={app.filter} onFilterChange={app.setFilter} />;
     }
 
-    return (
-      <section className="rounded-card border border-line bg-white p-5 shadow-sm">
-        <p className="text-sm text-muted">{app.activeView === "data" ? "数据" : "资料"}</p>
-        <h2 className="mt-2 text-xl font-semibold text-ink">{app.activeView === "data" ? "数据视图" : "宝宝资料"}</h2>
-      </section>
-    );
+    if (app.activeView === "data") {
+      return <DataPage records={app.records} />;
+    }
+
+    if (app.activeView === "profile") {
+      return <ProfilePage child={app.child} onSave={app.updateChild} onExport={app.exportJson} />;
+    }
+
+    return null;
   }
 
   return (
