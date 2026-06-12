@@ -60,7 +60,7 @@ Create `package.json`:
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "verify": "npm run build && npm run test"
+    "verify": "pnpm build && pnpm test"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -290,20 +290,20 @@ import "fake-indexeddb/auto";
 
 - [ ] **Step 5: Install dependencies**
 
-Run: `npm install`
+Run: `pnpm install`
 
-Expected: `package-lock.json` is created and dependencies are installed.
+Expected: `pnpm-lock.yaml` is created and dependencies are installed.
 
 - [ ] **Step 6: Verify scaffold**
 
-Run: `npm run build`
+Run: `pnpm build`
 
 Expected: TypeScript and Vite build complete successfully.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add package.json package-lock.json index.html vite.config.ts tsconfig.json tsconfig.node.json tailwind.config.ts postcss.config.js src
+git add package.json pnpm-lock.yaml index.html vite.config.ts tsconfig.json tsconfig.node.json tailwind.config.ts postcss.config.js src
 git commit -m "chore: scaffold baby growth web app"
 ```
 
@@ -350,7 +350,7 @@ describe("date utilities", () => {
 
 - [ ] **Step 2: Run date tests to verify they fail**
 
-Run: `npm run test -- src/lib/date.test.ts`
+Run: `pnpm test -- src/lib/date.test.ts`
 
 Expected: FAIL because `src/lib/date.ts` does not exist.
 
@@ -505,7 +505,7 @@ export function groupRecordsByDay(records: BabyRecord[]): Array<{ date: string; 
 
 - [ ] **Step 6: Run tests**
 
-Run: `npm run test -- src/lib/date.test.ts`
+Run: `pnpm test -- src/lib/date.test.ts`
 
 Expected: PASS.
 
@@ -566,7 +566,7 @@ describe("repository", () => {
 
 - [ ] **Step 2: Run repository tests to verify they fail**
 
-Run: `npm run test -- src/storage/repository.test.ts`
+Run: `pnpm test -- src/storage/repository.test.ts`
 
 Expected: FAIL because repository files do not exist.
 
@@ -714,7 +714,7 @@ export type BabyRepository = ReturnType<typeof createRepository>;
 
 - [ ] **Step 5: Run repository tests**
 
-Run: `npm run test -- src/storage/repository.test.ts`
+Run: `pnpm test -- src/storage/repository.test.ts`
 
 Expected: PASS.
 
@@ -773,7 +773,7 @@ describe("recordService", () => {
 
 - [ ] **Step 2: Run service tests to verify they fail**
 
-Run: `npm run test -- src/services/recordService.test.ts`
+Run: `pnpm test -- src/services/recordService.test.ts`
 
 Expected: FAIL because service files do not exist.
 
@@ -880,7 +880,7 @@ export function createExportService(repository: BabyRepository) {
 
 - [ ] **Step 5: Run service tests**
 
-Run: `npm run test -- src/services/recordService.test.ts`
+Run: `pnpm test -- src/services/recordService.test.ts`
 
 Expected: PASS.
 
@@ -920,7 +920,7 @@ describe("useBabyApp", () => {
 
 - [ ] **Step 2: Run hook test to verify it fails**
 
-Run: `npm run test -- src/state/useBabyApp.test.tsx`
+Run: `pnpm test -- src/state/useBabyApp.test.tsx`
 
 Expected: FAIL because hook does not exist.
 
@@ -1009,7 +1009,7 @@ export function useBabyApp() {
 
 - [ ] **Step 4: Run hook test**
 
-Run: `npm run test -- src/state/useBabyApp.test.tsx`
+Run: `pnpm test -- src/state/useBabyApp.test.tsx`
 
 Expected: PASS.
 
@@ -1058,7 +1058,7 @@ describe("AppShell", () => {
 
 - [ ] **Step 2: Run shell test to verify it fails**
 
-Run: `npm run test -- src/components/layout/AppShell.test.tsx`
+Run: `pnpm test -- src/components/layout/AppShell.test.tsx`
 
 Expected: FAIL because shell files do not exist.
 
@@ -1178,7 +1178,7 @@ export default function App() {
 
 - [ ] **Step 5: Run shell test**
 
-Run: `npm run test -- src/components/layout/AppShell.test.tsx`
+Run: `pnpm test -- src/components/layout/AppShell.test.tsx`
 
 Expected: PASS.
 
@@ -1217,7 +1217,7 @@ describe("RecordCard", () => {
 
 - [ ] **Step 2: Run component test to verify it fails**
 
-Run: `npm run test -- src/components/records/RecordCard.test.tsx`
+Run: `pnpm test -- src/components/records/RecordCard.test.tsx`
 
 Expected: FAIL because record components do not exist.
 
@@ -1345,7 +1345,7 @@ export function RecordComposer({ childId, initialType, onCancel, onSave }: { chi
 
 - [ ] **Step 5: Run record component test**
 
-Run: `npm run test -- src/components/records/RecordCard.test.tsx`
+Run: `pnpm test -- src/components/records/RecordCard.test.tsx`
 
 Expected: PASS.
 
@@ -1385,7 +1385,7 @@ describe("HomePage", () => {
 
 - [ ] **Step 2: Run page test to verify it fails**
 
-Run: `npm run test -- src/pages/HomePage.test.tsx`
+Run: `pnpm test -- src/pages/HomePage.test.tsx`
 
 Expected: FAIL because pages do not exist.
 
@@ -1507,7 +1507,7 @@ export default function App() {
 
 - [ ] **Step 6: Run home page test**
 
-Run: `npm run test -- src/pages/HomePage.test.tsx`
+Run: `pnpm test -- src/pages/HomePage.test.tsx`
 
 Expected: PASS.
 
@@ -1550,7 +1550,7 @@ describe("DataPage", () => {
 
 - [ ] **Step 2: Run data page test to verify it fails**
 
-Run: `npm run test -- src/pages/DataPage.test.tsx`
+Run: `pnpm test -- src/pages/DataPage.test.tsx`
 
 Expected: FAIL because data page does not exist.
 
@@ -1705,7 +1705,7 @@ Replace the fallback page block with:
 
 - [ ] **Step 6: Run data page test**
 
-Run: `npm run test -- src/pages/DataPage.test.tsx`
+Run: `pnpm test -- src/pages/DataPage.test.tsx`
 
 Expected: PASS.
 
@@ -1723,19 +1723,19 @@ git commit -m "feat: add data profile and export views"
 
 - [ ] **Step 1: Run full test suite**
 
-Run: `npm run test`
+Run: `pnpm test`
 
 Expected: all tests pass.
 
 - [ ] **Step 2: Run production build**
 
-Run: `npm run build`
+Run: `pnpm build`
 
 Expected: TypeScript and Vite build pass.
 
 - [ ] **Step 3: Run app locally**
 
-Run: `npm run dev`
+Run: `pnpm dev`
 
 Expected: Vite prints a local URL, usually `http://localhost:5173/`.
 
@@ -1759,8 +1759,8 @@ Open `http://localhost:5173/` in the in-app browser and verify:
 For each issue, make the smallest targeted code change, then rerun:
 
 ```bash
-npm run test
-npm run build
+pnpm test
+pnpm build
 ```
 
 Expected: both pass after fixes.
