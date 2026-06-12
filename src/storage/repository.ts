@@ -1,23 +1,28 @@
-/* global IDBObjectStore, IDBTransactionMode, crypto */
+/* global crypto */
 
 import type { BabyRecord, Child, MediaAsset, RecordDraft, RecordType } from "../domain/types";
 import {
   DEFAULT_DB_NAME,
-  openBabyDatabase,
   requestToPromise,
   STORE_NAMES,
-  transactionDone,
-  type StoreName,
+  withStore,
+  withStores,
 } from "./indexedDb";
 
-type RecordPatch = Partial<Omit<BabyRecord, "id" | "createdAt">>;
+type RecordPatch<T extends RecordType = RecordType> = {
+  title?: BabyRecord<T>["title"];
+  note?: BabyRecord<T>["note"];
+  mediaIds?: BabyRecord<T>["mediaIds"];
+  occurredAt?: BabyRecord<T>["occurredAt"];
+  payload?: BabyRecord<T>["payload"];
+};
 type MediaDraft = Omit<MediaAsset, "id" | "createdAt">;
 
 export type Repository = {
   ensureDefaultChild(): Promise<Child>;
   updateChild(child: Child): Promise<Child>;
   createRecord<T extends RecordType>(draft: RecordDraft<T>): Promise<BabyRecord<T>>;
-  updateRecord(id: string, patch: RecordPatch): Promise<BabyRecord>;
+  updateRecord<T extends RecordType>(id: string, patch: RecordPatch<T>): Promise<BabyRecord>;
   deleteRecord(id: string): Promise<void>;
   listRecords(options: { childId: string; type?: RecordType }): Promise<BabyRecord[]>;
   saveMedia(asset: MediaDraft): Promise<MediaAsset>;
@@ -49,46 +54,29 @@ function nextUpdatedAt(previous: string) {
   return now.toISOString();
 }
 
-async function withStore<T>(
-  dbName: string,
-  storeName: StoreName,
-  mode: IDBTransactionMode,
-  operation: (store: IDBObjectStore) => Promise<T>,
-) {
-  const database = await openBabyDatabase(dbName);
+function assertUpdatePatchDoesNotChangeIdentity(patch: object) {
+  if ("type" in patch) {
+    throw new Error("记录类型不可修改");
+  }
 
-  try {
-    const transaction = database.transaction(storeName, mode);
-    const store = transaction.objectStore(storeName);
-    const result = await operation(store);
-    await transactionDone(transaction);
-
-    return result;
-  } finally {
-    database.close();
+  if ("id" in patch || "childId" in patch || "createdAt" in patch) {
+    throw new Error("记录标识不可修改");
   }
 }
 
-async function withStores<T>(
-  dbName: string,
-  storeNames: StoreName[],
-  mode: IDBTransactionMode,
-  operation: (stores: Map<StoreName, IDBObjectStore>) => Promise<T>,
-) {
-  const database = await openBabyDatabase(dbName);
-
-  try {
-    const transaction = database.transaction(storeNames, mode);
-    const stores = new Map<StoreName, IDBObjectStore>(
-      storeNames.map((storeName) => [storeName, transaction.objectStore(storeName)]),
-    );
-    const result = await operation(stores);
-    await transactionDone(transaction);
-
-    return result;
-  } finally {
-    database.close();
-  }
+function mergeRecordPatch<T extends RecordType>(
+  record: BabyRecord<T>,
+  patch: RecordPatch<T>,
+): BabyRecord<T> {
+  return {
+    ...record,
+    ...patch,
+    id: record.id,
+    childId: record.childId,
+    type: record.type,
+    createdAt: record.createdAt,
+    updatedAt: nextUpdatedAt(record.updatedAt),
+  };
 }
 
 export function createRepository(dbName = DEFAULT_DB_NAME): Repository {
@@ -150,19 +138,14 @@ export function createRepository(dbName = DEFAULT_DB_NAME): Repository {
 
     async updateRecord(id, patch) {
       return withStore(dbName, STORE_NAMES.records, "readwrite", async (store) => {
+        assertUpdatePatchDoesNotChangeIdentity(patch);
         const existingRecord = (await requestToPromise(store.get(id))) as BabyRecord | undefined;
 
         if (!existingRecord) {
           throw new Error("记录不存在");
         }
 
-        const updatedRecord: BabyRecord = {
-          ...existingRecord,
-          ...patch,
-          id: existingRecord.id,
-          createdAt: existingRecord.createdAt,
-          updatedAt: nextUpdatedAt(existingRecord.updatedAt),
-        } as BabyRecord;
+        const updatedRecord = mergeRecordPatch(existingRecord, patch);
 
         await requestToPromise(store.put(updatedRecord));
 

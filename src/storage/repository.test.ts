@@ -1,6 +1,8 @@
 /* global crypto, indexedDB */
 
 import { afterEach, describe, expect, it } from "vitest";
+import type { RecordDraft } from "../domain/types";
+import { requestToPromise, STORE_NAMES, withStore, withStores } from "./indexedDb";
 import { createRepository } from "./repository";
 
 const dbNames: string[] = [];
@@ -70,7 +72,7 @@ describe("createRepository", () => {
   it("updates records and deletes records", async () => {
     const repository = createRepository(uniqueDbName());
     const child = await repository.ensureDefaultChild();
-    const record = await repository.createRecord({
+    const sleepDraft = {
       childId: child.id,
       type: "sleep",
       occurredAt: "2026-06-12T12:00:00.000Z",
@@ -78,7 +80,8 @@ describe("createRepository", () => {
         startTime: "2026-06-12T12:00:00.000Z",
         endTime: "2026-06-12T13:00:00.000Z",
       },
-    });
+    } satisfies RecordDraft<"sleep">;
+    const record = await repository.createRecord(sleepDraft);
 
     const updated = await repository.updateRecord(record.id, {
       note: "睡得很好",
@@ -96,6 +99,99 @@ describe("createRepository", () => {
     }
     expect(updated.updatedAt).not.toBe(record.updatedAt);
     await expect(repository.listRecords({ childId: child.id })).resolves.toEqual([]);
+  });
+
+  it("preserves a record type when an unsafe patch includes type", async () => {
+    const repository = createRepository(uniqueDbName());
+    const child = await repository.ensureDefaultChild();
+    const record = await repository.createRecord({
+      childId: child.id,
+      type: "journal",
+      occurredAt: "2026-06-12T08:00:00.000Z",
+      payload: { body: "不能改类型" },
+    });
+
+    await expect(
+      repository.updateRecord(record.id, {
+        type: "growth",
+        payload: { heightCm: 72 },
+      } as never),
+    ).rejects.toThrow("记录类型不可修改");
+    await expect(repository.listRecords({ childId: child.id })).resolves.toEqual([record]);
+  });
+
+  it("rolls back queued writes when a single-store transaction operation throws", async () => {
+    const dbName = uniqueDbName();
+    const timestamp = "2026-06-12T08:00:00.000Z";
+
+    await expect(
+      withStore(dbName, STORE_NAMES.children, "readwrite", async (store) => {
+        await requestToPromise(
+          store.add({
+            id: "child-rollback",
+            name: "临时宝宝",
+            birthday: "2026-06-12",
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          }),
+        );
+        throw new Error("simulate failure");
+      }),
+    ).rejects.toThrow("simulate failure");
+
+    const children = await withStore(dbName, STORE_NAMES.children, "readonly", async (store) => {
+      return (await requestToPromise(store.getAll())) as unknown[];
+    });
+
+    expect(children).toEqual([]);
+  });
+
+  it("rolls back queued writes when a multi-store transaction operation throws", async () => {
+    const dbName = uniqueDbName();
+    const timestamp = "2026-06-12T08:00:00.000Z";
+
+    await expect(
+      withStores(
+        dbName,
+        [STORE_NAMES.children, STORE_NAMES.records],
+        "readwrite",
+        async (stores) => {
+          const childrenStore = stores.get(STORE_NAMES.children);
+          const recordsStore = stores.get(STORE_NAMES.records);
+
+          if (!childrenStore || !recordsStore) {
+            throw new Error("missing store");
+          }
+
+          await requestToPromise(
+            childrenStore.add({
+              id: "child-multi-rollback",
+              name: "临时宝宝",
+              birthday: "2026-06-12",
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            }),
+          );
+          await requestToPromise(
+            recordsStore.add({
+              id: "record-multi-rollback",
+              childId: "child-multi-rollback",
+              type: "journal",
+              occurredAt: timestamp,
+              payload: { body: "不应提交" },
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            }),
+          );
+          throw new Error("simulate multi-store failure");
+        },
+      ),
+    ).rejects.toThrow("simulate multi-store failure");
+
+    const exported = await createRepository(dbName).exportAll();
+
+    expect(exported.children).toEqual([]);
+    expect(exported.records).toEqual([]);
   });
 
   it("saves media assets and exports a data summary", async () => {
