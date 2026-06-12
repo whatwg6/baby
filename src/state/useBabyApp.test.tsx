@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { BabyRecord, Child, RecordDraft, RecordType } from "../domain/types";
 import type { Repository } from "../storage/repository";
 import { useBabyApp } from "./useBabyApp";
@@ -7,6 +7,27 @@ import { useBabyApp } from "./useBabyApp";
 const timestamp = "2026-06-12T08:00:00.000Z";
 
 type ExportData = Awaited<ReturnType<Repository["exportAll"]>>;
+type TestRepositoryOptions = {
+  exportError?: Error;
+  createRecordDeferred?: Deferred<BabyRecord>;
+};
+
+type Deferred<T> = {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (error: unknown) => void;
+};
+
+function deferred<T>(): Deferred<T> {
+  let resolve!: (value: T) => void;
+  let reject!: (error: unknown) => void;
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+
+  return { promise, resolve, reject };
+}
 
 function defaultChild(overrides: Partial<Child> = {}): Child {
   return {
@@ -19,7 +40,10 @@ function defaultChild(overrides: Partial<Child> = {}): Child {
   };
 }
 
-function createTestRepository(initialChild = defaultChild()): Repository {
+function createTestRepository(
+  initialChild = defaultChild(),
+  options: TestRepositoryOptions = {},
+): Repository {
   let child = initialChild;
   let records: BabyRecord[] = [];
   let recordNumber = 0;
@@ -45,6 +69,15 @@ function createTestRepository(initialChild = defaultChild()): Repository {
         updatedAt: timestamp,
       } as BabyRecord<typeof draft.type>;
 
+      if (options.createRecordDeferred) {
+        const deferredRecord = await options.createRecordDeferred.promise;
+        records = [deferredRecord, ...records].sort((left, right) =>
+          right.occurredAt.localeCompare(left.occurredAt),
+        );
+
+        return deferredRecord as BabyRecord<typeof draft.type>;
+      }
+
       records = [record, ...records].sort((left, right) =>
         right.occurredAt.localeCompare(left.occurredAt),
       );
@@ -69,6 +102,10 @@ function createTestRepository(initialChild = defaultChild()): Repository {
       return undefined;
     },
     async exportAll(): Promise<ExportData> {
+      if (options.exportError) {
+        throw options.exportError;
+      }
+
       return {
         exportedAt: timestamp,
         children: [child],
@@ -140,6 +177,23 @@ describe("useBabyApp", () => {
     expect(result.current.visibleRecords).toEqual([]);
   });
 
+  it("rejects drafts that do not belong to the active child", async () => {
+    const repository = createTestRepository();
+    const createRecord = vi.spyOn(repository, "createRecord");
+    const { result } = renderHook(() => useBabyApp({ repository }));
+    await waitFor(() => expect(result.current.child).not.toBeNull());
+
+    let createdRecord: BabyRecord | null = null;
+    await act(async () => {
+      createdRecord = await result.current.createRecord(journalDraft({ childId: "other-child" }));
+    });
+
+    expect(createdRecord).toBeNull();
+    expect(result.current.error).toBe("记录不属于当前宝宝");
+    expect(createRecord).not.toHaveBeenCalled();
+    expect(result.current.records).toEqual([]);
+  });
+
   it("limits visible records by the selected filter", async () => {
     const repository = createTestRepository();
     const { result } = renderHook(() => useBabyApp({ repository }));
@@ -195,6 +249,61 @@ describe("useBabyApp", () => {
     expect(exportedJson).toContain('\n  "children"');
     expect(exportedData.children).toHaveLength(1);
     expect(exportedData.records).toHaveLength(1);
+  });
+
+  it("clears stale errors before export and stores export failures", async () => {
+    const repository = createTestRepository(defaultChild(), {
+      exportError: new Error("导出失败"),
+    });
+    const { result } = renderHook(() => useBabyApp({ repository }));
+    await waitFor(() => expect(result.current.child).not.toBeNull());
+
+    await act(async () => {
+      await result.current.createRecord(journalDraft({ childId: "", occurredAt: "" }));
+    });
+    expect(result.current.error).toBe("请选择宝宝");
+
+    let exportError: unknown;
+    await act(async () => {
+      try {
+        await result.current.exportJson();
+      } catch (error) {
+        exportError = error;
+      }
+    });
+
+    expect(exportError).toEqual(new Error("导出失败"));
+    expect(result.current.error).toBe("导出失败");
+  });
+
+  it("does not update state when a delayed create resolves after unmount", async () => {
+    const delayedRecord = deferred<BabyRecord>();
+    const repository = createTestRepository(defaultChild(), {
+      createRecordDeferred: delayedRecord,
+    });
+    const { result, unmount } = renderHook(() => useBabyApp({ repository }));
+    await waitFor(() => expect(result.current.child).not.toBeNull());
+
+    let createPromise: Promise<BabyRecord | null>;
+    await act(async () => {
+      createPromise = result.current.createRecord(journalDraft());
+    });
+
+    unmount();
+
+    const record = {
+      childId: "child-1",
+      type: "journal",
+      occurredAt: timestamp,
+      payload: { body: "延迟记录" },
+      id: "delayed-record",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    } satisfies BabyRecord<"journal">;
+
+    delayedRecord.resolve(record);
+
+    await expect(createPromise!).resolves.toEqual(record);
   });
 
   it("exposes setters for the active view and filter", async () => {

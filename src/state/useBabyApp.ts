@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BabyRecord, Child, RecordDraft, RecordType, ViewKey } from "../domain/types";
 import { validateDraft } from "../services/recordService";
 import { createRepository, type Repository } from "../storage/repository";
@@ -38,11 +38,18 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
   const [filter, setFilter] = useState<RecordFilter>("all");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isMountedRef = useRef(true);
+  const recordsRequestRef = useRef(0);
 
   const loadRecords = useCallback(
     async (activeChild: Child) => {
+      const requestId = recordsRequestRef.current + 1;
+      recordsRequestRef.current = requestId;
       const loadedRecords = await repository.listRecords({ childId: activeChild.id });
-      setRecords(loadedRecords);
+
+      if (isMountedRef.current && requestId === recordsRequestRef.current) {
+        setRecords(loadedRecords);
+      }
 
       return loadedRecords;
     },
@@ -50,7 +57,7 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
   );
 
   useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
 
     async function loadInitialState() {
       setIsLoading(true);
@@ -58,18 +65,17 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
 
       try {
         const loadedChild = await repository.ensureDefaultChild();
-        const loadedRecords = await repository.listRecords({ childId: loadedChild.id });
+        await loadRecords(loadedChild);
 
-        if (isMounted) {
+        if (isMountedRef.current) {
           setChild(loadedChild);
-          setRecords(loadedRecords);
         }
       } catch (loadError) {
-        if (isMounted) {
+        if (isMountedRef.current) {
           setError(toErrorMessage(loadError));
         }
       } finally {
-        if (isMounted) {
+        if (isMountedRef.current) {
           setIsLoading(false);
         }
       }
@@ -78,9 +84,9 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
     void loadInitialState();
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
     };
-  }, [repository]);
+  }, [loadRecords, repository]);
 
   const visibleRecords = useMemo(() => {
     if (filter === "all") {
@@ -95,17 +101,29 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
       const validationErrors = validateDraft(draft);
 
       if (validationErrors.length > 0) {
-        setError(validationErrors[0]);
+        if (isMountedRef.current) {
+          setError(validationErrors[0]);
+        }
         return null;
       }
 
-      setError(null);
+      const activeChild = child ?? (await repository.ensureDefaultChild());
+
+      if (draft.childId !== activeChild.id) {
+        if (isMountedRef.current) {
+          setError("记录不属于当前宝宝");
+        }
+        return null;
+      }
+
+      if (isMountedRef.current) {
+        setError(null);
+      }
 
       try {
         const createdRecord = await repository.createRecord(draft);
-        const activeChild = child ?? (await repository.ensureDefaultChild());
 
-        if (!child) {
+        if (isMountedRef.current && !child) {
           setChild(activeChild);
         }
 
@@ -113,7 +131,9 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
 
         return createdRecord;
       } catch (createError) {
-        setError(toErrorMessage(createError));
+        if (isMountedRef.current) {
+          setError(toErrorMessage(createError));
+        }
         return null;
       }
     },
@@ -122,16 +142,22 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
 
   const persistChild = useCallback(
     async (updatedChild: Child) => {
-      setError(null);
+      if (isMountedRef.current) {
+        setError(null);
+      }
 
       try {
         const persistedChild = await repository.updateChild(updatedChild);
-        setChild(persistedChild);
+        if (isMountedRef.current) {
+          setChild(persistedChild);
+        }
         await loadRecords(persistedChild);
 
         return persistedChild;
       } catch (updateError) {
-        setError(toErrorMessage(updateError));
+        if (isMountedRef.current) {
+          setError(toErrorMessage(updateError));
+        }
         throw updateError;
       }
     },
@@ -139,9 +165,20 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
   );
 
   const exportJson = useCallback(async () => {
-    const exportedData = await repository.exportAll();
+    if (isMountedRef.current) {
+      setError(null);
+    }
 
-    return JSON.stringify(exportedData, null, 2);
+    try {
+      const exportedData = await repository.exportAll();
+
+      return JSON.stringify(exportedData, null, 2);
+    } catch (exportError) {
+      if (isMountedRef.current) {
+        setError(toErrorMessage(exportError));
+      }
+      throw exportError;
+    }
   }, [repository]);
 
   return {
