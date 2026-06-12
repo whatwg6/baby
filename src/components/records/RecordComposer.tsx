@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useRef, useState } from "react";
 import { recordMeta, recordTypeOrder } from "../../domain/recordMeta";
 import type { RecordDraft, RecordType, SleepPayload } from "../../domain/types";
 
@@ -6,7 +6,7 @@ export type RecordComposerProps = {
   childId: string;
   initialType?: RecordType;
   onCancel: () => void;
-  onSave: (draft: RecordDraft) => void;
+  onSave: (draft: RecordDraft) => void | Promise<void>;
 };
 
 const temporaryPhotoMediaId = "manual-photo-entry";
@@ -47,6 +47,16 @@ function combineDateTime(date: string, time: string): string {
   return `${date}T${time}`;
 }
 
+function parseDateTimeInput(date: string, time: string): number | undefined {
+  if (!date || !time) {
+    return undefined;
+  }
+
+  const timestamp = Date.parse(combineDateTime(date, time));
+
+  return Number.isFinite(timestamp) ? timestamp : undefined;
+}
+
 function fieldClassName() {
   return "mt-1 w-full rounded-card border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
 }
@@ -80,6 +90,9 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
   const [milestoneCategory, setMilestoneCategory] = useState("");
   const [milestoneDescription, setMilestoneDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const isSavingRef = useRef(false);
+  const errorId = error ? "record-composer-error" : undefined;
 
   function buildDraft(): RecordDraft | null {
     const occurredAt = combineDateTime(date, time);
@@ -141,6 +154,24 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
         };
       }
       case "sleep": {
+        const startTimestamp = parseDateTimeInput(sleepStartDate, sleepStartTime);
+        const endTimestamp = parseDateTimeInput(sleepEndDate, sleepEndTime);
+
+        if (startTimestamp === undefined) {
+          setError("请选择有效的睡眠开始时间");
+          return null;
+        }
+
+        if (endTimestamp === undefined) {
+          setError("请选择有效的睡眠结束时间");
+          return null;
+        }
+
+        if (endTimestamp < startTimestamp) {
+          setError("睡眠结束时间不能早于开始时间");
+          return null;
+        }
+
         const startTime = combineDateTime(sleepStartDate, sleepStartTime);
         const endTime = combineDateTime(sleepEndDate, sleepEndTime);
 
@@ -197,13 +228,26 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
     }
   }
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (isSavingRef.current) {
+      return;
+    }
+
     setError(null);
     const draft = buildDraft();
 
     if (draft) {
-      onSave(draft);
+      isSavingRef.current = true;
+      setIsSaving(true);
+      try {
+        await onSave(draft);
+      } catch {
+        setError("保存失败，请重试");
+      } finally {
+        isSavingRef.current = false;
+        setIsSaving(false);
+      }
     }
   }
 
@@ -220,6 +264,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
               key={recordType}
               type="button"
               aria-pressed={isActive}
+              disabled={isSaving}
               onClick={() => {
                 setType(recordType);
                 setError(null);
@@ -240,11 +285,23 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <label className={labelClassName()}>
           记录日期
-          <input className={fieldClassName()} type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+          <input
+            className={fieldClassName()}
+            type="date"
+            value={date}
+            aria-describedby={errorId}
+            onChange={(event) => setDate(event.target.value)}
+          />
         </label>
         <label className={labelClassName()}>
           记录时间
-          <input className={fieldClassName()} type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+          <input
+            className={fieldClassName()}
+            type="time"
+            value={time}
+            aria-describedby={errorId}
+            onChange={(event) => setTime(event.target.value)}
+          />
         </label>
       </div>
 
@@ -252,21 +309,35 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
 
       <label className={`mt-4 block ${labelClassName()}`}>
         备注
-        <textarea className={`${fieldClassName()} min-h-20 resize-y`} value={note} onChange={(event) => setNote(event.target.value)} />
+        <textarea
+          className={`${fieldClassName()} min-h-20 resize-y`}
+          value={note}
+          aria-describedby={errorId}
+          onChange={(event) => setNote(event.target.value)}
+        />
       </label>
 
-      {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+      {error ? (
+        <p id="record-composer-error" className="mt-3 text-sm text-danger" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="mt-5 flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
+          disabled={isSaving}
           className="min-h-10 rounded-card border border-line bg-white px-4 text-sm font-medium text-ink hover:border-primary/50 hover:text-primary"
         >
           取消
         </button>
-        <button type="submit" className="min-h-10 rounded-card bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90">
-          保存
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="min-h-10 rounded-card bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90"
+        >
+          {isSaving ? "保存中" : "保存"}
         </button>
       </div>
     </form>
@@ -281,6 +352,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
             <textarea
               className={`${fieldClassName()} min-h-28 resize-y`}
               value={journalBody}
+              aria-describedby={errorId}
               onChange={(event) => setJournalBody(event.target.value)}
             />
           </label>
@@ -293,6 +365,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
               className={fieldClassName()}
               type="text"
               value={photoCaption}
+              aria-describedby={errorId}
               onChange={(event) => setPhotoCaption(event.target.value)}
             />
           </label>
@@ -309,6 +382,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 step="0.1"
                 type="number"
                 value={heightCm}
+                aria-describedby={errorId}
                 onChange={(event) => setHeightCm(event.target.value)}
               />
             </label>
@@ -321,6 +395,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 step="0.1"
                 type="number"
                 value={weightKg}
+                aria-describedby={errorId}
                 onChange={(event) => setWeightKg(event.target.value)}
               />
             </label>
@@ -333,6 +408,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 step="0.1"
                 type="number"
                 value={headCircumferenceCm}
+                aria-describedby={errorId}
                 onChange={(event) => setHeadCircumferenceCm(event.target.value)}
               />
             </label>
@@ -347,6 +423,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="date"
                 value={sleepStartDate}
+                aria-describedby={errorId}
                 onChange={(event) => setSleepStartDate(event.target.value)}
               />
             </label>
@@ -356,6 +433,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="time"
                 value={sleepStartTime}
+                aria-describedby={errorId}
                 onChange={(event) => setSleepStartTime(event.target.value)}
               />
             </label>
@@ -365,6 +443,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="date"
                 value={sleepEndDate}
+                aria-describedby={errorId}
                 onChange={(event) => setSleepEndDate(event.target.value)}
               />
             </label>
@@ -374,6 +453,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="time"
                 value={sleepEndTime}
+                aria-describedby={errorId}
                 onChange={(event) => setSleepEndTime(event.target.value)}
               />
             </label>
@@ -382,6 +462,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
               <select
                 className={fieldClassName()}
                 value={sleepQuality}
+                aria-describedby={errorId}
                 onChange={(event) => setSleepQuality(event.target.value as SleepPayload["quality"])}
               >
                 <option value="good">安稳</option>
@@ -400,6 +481,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="text"
                 value={vaccineName}
+                aria-describedby={errorId}
                 onChange={(event) => setVaccineName(event.target.value)}
               />
             </label>
@@ -409,6 +491,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="text"
                 value={vaccineDose}
+                aria-describedby={errorId}
                 onChange={(event) => setVaccineDose(event.target.value)}
               />
             </label>
@@ -418,6 +501,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="date"
                 value={scheduledDate}
+                aria-describedby={errorId}
                 onChange={(event) => setScheduledDate(event.target.value)}
               />
             </label>
@@ -427,6 +511,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="date"
                 value={completedDate}
+                aria-describedby={errorId}
                 onChange={(event) => setCompletedDate(event.target.value)}
               />
             </label>
@@ -436,6 +521,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="text"
                 value={vaccineLocation}
+                aria-describedby={errorId}
                 onChange={(event) => setVaccineLocation(event.target.value)}
               />
             </label>
@@ -450,6 +536,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
                 className={fieldClassName()}
                 type="text"
                 value={milestoneCategory}
+                aria-describedby={errorId}
                 onChange={(event) => setMilestoneCategory(event.target.value)}
               />
             </label>
@@ -458,6 +545,7 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
               <textarea
                 className={`${fieldClassName()} min-h-24 resize-y`}
                 value={milestoneDescription}
+                aria-describedby={errorId}
                 onChange={(event) => setMilestoneDescription(event.target.value)}
               />
             </label>

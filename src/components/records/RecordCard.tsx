@@ -7,10 +7,19 @@ export type RecordCardProps = {
   record: BabyRecord;
 };
 
+function safeFormatTimeLabel(value: string): string {
+  try {
+    return formatTimeLabel(value);
+  } catch {
+    return "日期无效";
+  }
+}
+
 export function RecordCard({ record }: RecordCardProps) {
   const meta = recordMeta[record.type];
   const Icon = meta.icon;
   const summary = summarizeRecord(record);
+  const timeLabel = safeFormatTimeLabel(record.occurredAt);
 
   return (
     <article className="rounded-card border border-line bg-white p-4 shadow-sm">
@@ -28,7 +37,7 @@ export function RecordCard({ record }: RecordCardProps) {
               <h3 className="mt-1 break-words text-base font-semibold text-ink">{record.title?.trim() || summary}</h3>
             </div>
             <time className="shrink-0 text-sm text-muted" dateTime={record.occurredAt}>
-              {formatTimeLabel(record.occurredAt)}
+              {timeLabel}
             </time>
           </div>
           {record.title?.trim() ? <p className="mt-2 break-words text-sm text-muted">{summary}</p> : null}
