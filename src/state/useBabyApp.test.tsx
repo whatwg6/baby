@@ -306,6 +306,57 @@ describe("useBabyApp", () => {
     await expect(createPromise!).resolves.toEqual(record);
   });
 
+  it("does not let a delayed create refresh overwrite records after the active child changes", async () => {
+    const delayedRecord = deferred<BabyRecord>();
+    const repository = createTestRepository(defaultChild(), {
+      createRecordDeferred: delayedRecord,
+    });
+    const { result } = renderHook(() => useBabyApp({ repository }));
+    await waitFor(() => expect(result.current.child).not.toBeNull());
+
+    let createPromise: Promise<BabyRecord | null>;
+    act(() => {
+      createPromise = result.current.createRecord(journalDraft());
+    });
+
+    await act(async () => {
+      await result.current.updateChild(
+        defaultChild({
+          id: "child-2",
+          name: "安安",
+        }),
+      );
+    });
+
+    expect(result.current.child).toMatchObject({
+      id: "child-2",
+      name: "安安",
+    });
+    expect(result.current.records).toEqual([]);
+
+    const oldChildRecord = {
+      childId: "child-1",
+      type: "journal",
+      occurredAt: timestamp,
+      payload: { body: "旧宝宝的延迟记录" },
+      id: "old-child-record",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    } satisfies BabyRecord<"journal">;
+
+    delayedRecord.resolve(oldChildRecord);
+
+    await act(async () => {
+      await createPromise!;
+    });
+
+    expect(result.current.child).toMatchObject({
+      id: "child-2",
+      name: "安安",
+    });
+    expect(result.current.records).toEqual([]);
+  });
+
   it("exposes setters for the active view and filter", async () => {
     const repository = createTestRepository();
     const { result } = renderHook(() => useBabyApp({ repository }));

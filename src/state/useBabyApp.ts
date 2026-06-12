@@ -40,14 +40,19 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
   const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
   const recordsRequestRef = useRef(0);
+  const activeChildIdRef = useRef<string | null>(null);
 
   const loadRecords = useCallback(
-    async (activeChild: Child) => {
+    async (childId: string) => {
       const requestId = recordsRequestRef.current + 1;
       recordsRequestRef.current = requestId;
-      const loadedRecords = await repository.listRecords({ childId: activeChild.id });
+      const loadedRecords = await repository.listRecords({ childId });
 
-      if (isMountedRef.current && requestId === recordsRequestRef.current) {
+      if (
+        isMountedRef.current &&
+        requestId === recordsRequestRef.current &&
+        childId === activeChildIdRef.current
+      ) {
         setRecords(loadedRecords);
       }
 
@@ -65,7 +70,8 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
 
       try {
         const loadedChild = await repository.ensureDefaultChild();
-        await loadRecords(loadedChild);
+        activeChildIdRef.current = loadedChild.id;
+        await loadRecords(loadedChild.id);
 
         if (isMountedRef.current) {
           setChild(loadedChild);
@@ -127,7 +133,7 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
           setChild(activeChild);
         }
 
-        await loadRecords(activeChild);
+        await loadRecords(activeChild.id);
 
         return createdRecord;
       } catch (createError) {
@@ -149,9 +155,10 @@ export function useBabyApp(options: UseBabyAppOptions = {}): UseBabyAppState {
       try {
         const persistedChild = await repository.updateChild(updatedChild);
         if (isMountedRef.current) {
+          activeChildIdRef.current = persistedChild.id;
           setChild(persistedChild);
         }
-        await loadRecords(persistedChild);
+        await loadRecords(persistedChild.id);
 
         return persistedChild;
       } catch (updateError) {
