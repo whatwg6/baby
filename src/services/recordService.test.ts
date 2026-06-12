@@ -331,4 +331,29 @@ describe("buildSleepSummary", () => {
       averageMinutes: 0,
     });
   });
+
+  it("skips sleep records with invalid timestamps", () => {
+    const records = [
+      sleepRecord(
+        {
+          startTime: "not-a-date",
+          endTime: "2026-06-12T13:30:00.000Z",
+        },
+        { id: "sleep-invalid" },
+      ),
+      sleepRecord(
+        {
+          startTime: "2026-06-12T20:00:00.000Z",
+          endTime: "2026-06-12T22:00:00.000Z",
+        },
+        { id: "sleep-valid" },
+      ),
+    ];
+
+    expect(buildSleepSummary(records)).toEqual({
+      count: 1,
+      totalMinutes: 120,
+      averageMinutes: 120,
+    });
+  });
 });

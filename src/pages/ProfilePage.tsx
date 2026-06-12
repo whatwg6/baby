@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Child } from "../domain/types";
 
 export type ProfilePageProps = {
@@ -10,28 +10,66 @@ export type ProfilePageProps = {
 export function ProfilePage({ child, onSave, onExport }: ProfilePageProps) {
   const [draft, setDraft] = useState(child);
   const [status, setStatus] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const isSavingRef = useRef(false);
+  const isExportingRef = useRef(false);
 
   useEffect(() => {
     setDraft(child);
   }, [child]);
 
   async function handleSave() {
-    const now = new Date().toISOString();
-    await onSave({ ...draft, updatedAt: now });
-    setStatus("档案已保存");
+    if (isSavingRef.current) {
+      return;
+    }
+
+    isSavingRef.current = true;
+    setIsSaving(true);
+    setStatus(null);
+
+    try {
+      const now = new Date().toISOString();
+      await onSave({ ...draft, updatedAt: now });
+      setStatus("档案已保存");
+    } catch {
+      setStatus("档案保存失败，请稍后再试");
+    } finally {
+      isSavingRef.current = false;
+      setIsSaving(false);
+    }
   }
 
   async function handleExport() {
-    const json = await onExport();
-    const blob = new Blob([json], { type: "application/json" });
-    const url = globalThis.URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    if (isExportingRef.current) {
+      return;
+    }
 
-    link.href = url;
-    link.download = "baby-growth-backup.json";
-    link.click();
-    globalThis.URL.revokeObjectURL(url);
-    setStatus("JSON 已导出");
+    isExportingRef.current = true;
+    setIsExporting(true);
+    setStatus(null);
+
+    let url: string | null = null;
+
+    try {
+      const json = await onExport();
+      const blob = new Blob([json], { type: "application/json" });
+      url = globalThis.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "baby-growth-backup.json";
+      link.click();
+      setStatus("JSON 已导出");
+    } catch {
+      setStatus("JSON 导出失败，请稍后再试");
+    } finally {
+      if (url) {
+        globalThis.URL.revokeObjectURL(url);
+      }
+      isExportingRef.current = false;
+      setIsExporting(false);
+    }
   }
 
   return (
@@ -67,16 +105,18 @@ export function ProfilePage({ child, onSave, onExport }: ProfilePageProps) {
           <button
             type="button"
             onClick={handleSave}
+            disabled={isSaving}
             className="rounded-card bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
           >
-            保存档案
+            {isSaving ? "保存中..." : "保存档案"}
           </button>
           <button
             type="button"
             onClick={handleExport}
+            disabled={isExporting}
             className="rounded-card border border-line px-4 py-2 text-sm font-semibold text-muted transition hover:border-primary/50 hover:text-primary"
           >
-            导出 JSON
+            {isExporting ? "导出中..." : "导出 JSON"}
           </button>
         </div>
 

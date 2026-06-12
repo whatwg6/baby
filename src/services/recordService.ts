@@ -227,15 +227,20 @@ export function buildGrowthSeries(records: BabyRecord[]): GrowthPoint[] {
 }
 
 export function buildSleepSummary(records: BabyRecord[]): SleepSummary {
-  const sleepRecords = records.filter((record): record is BabyRecord<"sleep"> => record.type === "sleep");
-  const totalMinutes = sleepRecords.reduce(
-    (total, record) => total + minutesBetween(record.payload.startTime, record.payload.endTime),
-    0,
-  );
+  const sleepDurations = records
+    .filter((record): record is BabyRecord<"sleep"> => record.type === "sleep")
+    .flatMap((record) => {
+      try {
+        return [minutesBetween(record.payload.startTime, record.payload.endTime)];
+      } catch {
+        return [];
+      }
+    });
+  const totalMinutes = sleepDurations.reduce((total, minutes) => total + minutes, 0);
 
   return {
-    count: sleepRecords.length,
+    count: sleepDurations.length,
     totalMinutes,
-    averageMinutes: sleepRecords.length > 0 ? Math.round(totalMinutes / sleepRecords.length) : 0,
+    averageMinutes: sleepDurations.length > 0 ? Math.round(totalMinutes / sleepDurations.length) : 0,
   };
 }
