@@ -56,7 +56,7 @@ export type PayloadByType = {
   milestone: MilestonePayload;
 };
 
-export type BabyRecord<T extends RecordType = RecordType> = {
+type BabyRecordBase<T extends RecordType> = {
   id: string;
   childId: string;
   type: T;
@@ -69,6 +69,12 @@ export type BabyRecord<T extends RecordType = RecordType> = {
   updatedAt: string;
 };
 
+type BabyRecordByType = {
+  [T in RecordType]: BabyRecordBase<T>;
+};
+
+export type BabyRecord<T extends RecordType = RecordType> = BabyRecordByType[T];
+
 export type MediaAsset = {
   id: string;
   childId: string;
@@ -77,7 +83,7 @@ export type MediaAsset = {
   createdAt: string;
 };
 
-export type RecordDraft<T extends RecordType = RecordType> = {
+type RecordDraftBase<T extends RecordType> = {
   type: T;
   childId: string;
   occurredAt: string;
@@ -86,3 +92,9 @@ export type RecordDraft<T extends RecordType = RecordType> = {
   mediaIds?: string[];
   payload: PayloadByType[T];
 };
+
+type RecordDraftByType = {
+  [T in RecordType]: RecordDraftBase<T>;
+};
+
+export type RecordDraft<T extends RecordType = RecordType> = RecordDraftByType[T];

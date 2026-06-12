@@ -9,7 +9,10 @@ type RecordMeta = {
   bgClass: string;
 };
 
-export const recordTypeOrder: RecordType[] = ["journal", "photo", "growth", "sleep", "vaccine", "milestone"];
+export const recordTypeOrder = ["journal", "photo", "growth", "sleep", "vaccine", "milestone"] as const satisfies readonly RecordType[];
+
+const _recordTypeOrderIsExhaustive: Record<Exclude<RecordType, (typeof recordTypeOrder)[number]>, never> = {};
+void _recordTypeOrderIsExhaustive;
 
 export const recordMeta = {
   journal: {
