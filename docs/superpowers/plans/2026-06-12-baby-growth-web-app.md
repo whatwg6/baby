@@ -44,7 +44,7 @@
 - Create: `src/vite-env.d.ts`
 - Create: `src/test/setup.ts`
 
-- [ ] **Step 1: Create package metadata and scripts**
+- [x] **Step 1: Create package metadata and scripts**
 
 Create `package.json`:
 
@@ -92,7 +92,7 @@ Create `package.json`:
 }
 ```
 
-- [ ] **Step 2: Add Vite and TypeScript config**
+- [x] **Step 2: Add Vite and TypeScript config**
 
 Create `vite.config.ts`:
 
@@ -149,7 +149,7 @@ Create `tsconfig.node.json`:
 }
 ```
 
-- [ ] **Step 3: Add Tailwind config and global CSS**
+- [x] **Step 3: Add Tailwind config and global CSS**
 
 Create `tailwind.config.ts`:
 
@@ -224,7 +224,7 @@ select {
 }
 ```
 
-- [ ] **Step 4: Add app entry files**
+- [x] **Step 4: Add app entry files**
 
 Create `index.html`:
 
@@ -288,19 +288,19 @@ import "@testing-library/jest-dom/vitest";
 import "fake-indexeddb/auto";
 ```
 
-- [ ] **Step 5: Install dependencies**
+- [x] **Step 5: Install dependencies**
 
 Run: `pnpm install`
 
 Expected: `pnpm-lock.yaml` is created and dependencies are installed.
 
-- [ ] **Step 6: Verify scaffold**
+- [x] **Step 6: Verify scaffold**
 
 Run: `pnpm build`
 
 Expected: TypeScript and Vite build complete successfully.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json pnpm-lock.yaml index.html vite.config.ts tsconfig.json tsconfig.node.json tailwind.config.ts postcss.config.js src
@@ -315,7 +315,7 @@ git commit -m "chore: scaffold baby growth web app"
 - Create: `src/lib/date.ts`
 - Create: `src/lib/date.test.ts`
 
-- [ ] **Step 1: Write date utility tests**
+- [x] **Step 1: Write date utility tests**
 
 Create `src/lib/date.test.ts`:
 
@@ -348,13 +348,13 @@ describe("date utilities", () => {
 });
 ```
 
-- [ ] **Step 2: Run date tests to verify they fail**
+- [x] **Step 2: Run date tests to verify they fail**
 
 Run: `pnpm test -- src/lib/date.test.ts`
 
 Expected: FAIL because `src/lib/date.ts` does not exist.
 
-- [ ] **Step 3: Add domain types**
+- [x] **Step 3: Add domain types**
 
 Create `src/domain/types.ts`:
 
@@ -421,7 +421,7 @@ export type RecordDraft<T extends RecordType = RecordType> = {
 };
 ```
 
-- [ ] **Step 4: Add record metadata**
+- [x] **Step 4: Add record metadata**
 
 Create `src/domain/recordMeta.ts`:
 
@@ -447,7 +447,7 @@ export const recordMeta = {
 }>;
 ```
 
-- [ ] **Step 5: Add date utilities**
+- [x] **Step 5: Add date utilities**
 
 Create `src/lib/date.ts`:
 
@@ -503,13 +503,13 @@ export function groupRecordsByDay(records: BabyRecord[]): Array<{ date: string; 
 }
 ```
 
-- [ ] **Step 6: Run tests**
+- [x] **Step 6: Run tests**
 
 Run: `pnpm test -- src/lib/date.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/domain src/lib
@@ -523,7 +523,7 @@ git commit -m "feat: add baby growth domain model"
 - Create: `src/storage/repository.ts`
 - Create: `src/storage/repository.test.ts`
 
-- [ ] **Step 1: Write repository tests**
+- [x] **Step 1: Write repository tests**
 
 Create `src/storage/repository.test.ts`:
 
@@ -564,13 +564,13 @@ describe("repository", () => {
 });
 ```
 
-- [ ] **Step 2: Run repository tests to verify they fail**
+- [x] **Step 2: Run repository tests to verify they fail**
 
 Run: `pnpm test -- src/storage/repository.test.ts`
 
 Expected: FAIL because repository files do not exist.
 
-- [ ] **Step 3: Add IndexedDB helper**
+- [x] **Step 3: Add IndexedDB helper**
 
 Create `src/storage/indexedDb.ts`:
 
@@ -620,7 +620,7 @@ export async function withStore<T>(
 }
 ```
 
-- [ ] **Step 4: Add repository implementation**
+- [x] **Step 4: Add repository implementation**
 
 Create `src/storage/repository.ts`:
 
@@ -712,13 +712,13 @@ export function createRepository(dbName = DEFAULT_DB_NAME) {
 export type BabyRepository = ReturnType<typeof createRepository>;
 ```
 
-- [ ] **Step 5: Run repository tests**
+- [x] **Step 5: Run repository tests**
 
 Run: `pnpm test -- src/storage/repository.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/storage
@@ -734,7 +734,7 @@ git commit -m "feat: add indexeddb repository"
 - Create: `src/services/mediaService.ts`
 - Create: `src/services/exportService.ts`
 
-- [ ] **Step 1: Write record service tests**
+- [x] **Step 1: Write record service tests**
 
 Create `src/services/recordService.test.ts`:
 
@@ -771,13 +771,13 @@ describe("recordService", () => {
 });
 ```
 
-- [ ] **Step 2: Run service tests to verify they fail**
+- [x] **Step 2: Run service tests to verify they fail**
 
 Run: `pnpm test -- src/services/recordService.test.ts`
 
 Expected: FAIL because service files do not exist.
 
-- [ ] **Step 3: Add record service**
+- [x] **Step 3: Add record service**
 
 Create `src/services/recordService.ts`:
 
@@ -836,7 +836,7 @@ export function buildSleepSummary(records: BabyRecord[]) {
 }
 ```
 
-- [ ] **Step 4: Add thin service wrappers**
+- [x] **Step 4: Add thin service wrappers**
 
 Create `src/services/childService.ts`:
 
@@ -878,13 +878,13 @@ export function createExportService(repository: BabyRepository) {
 }
 ```
 
-- [ ] **Step 5: Run service tests**
+- [x] **Step 5: Run service tests**
 
 Run: `pnpm test -- src/services/recordService.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/services
@@ -897,7 +897,7 @@ git commit -m "feat: add record services"
 - Create: `src/state/useBabyApp.ts`
 - Create: `src/state/useBabyApp.test.tsx`
 
-- [ ] **Step 1: Write hook test**
+- [x] **Step 1: Write hook test**
 
 Create `src/state/useBabyApp.test.tsx`:
 
@@ -918,13 +918,13 @@ describe("useBabyApp", () => {
 });
 ```
 
-- [ ] **Step 2: Run hook test to verify it fails**
+- [x] **Step 2: Run hook test to verify it fails**
 
 Run: `pnpm test -- src/state/useBabyApp.test.tsx`
 
 Expected: FAIL because hook does not exist.
 
-- [ ] **Step 3: Implement hook**
+- [x] **Step 3: Implement hook**
 
 Create `src/state/useBabyApp.ts`:
 
@@ -1007,13 +1007,13 @@ export function useBabyApp() {
 }
 ```
 
-- [ ] **Step 4: Run hook test**
+- [x] **Step 4: Run hook test**
 
 Run: `pnpm test -- src/state/useBabyApp.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/state
@@ -1029,7 +1029,7 @@ git commit -m "feat: add app state hook"
 - Create: `src/components/layout/ChildSummary.tsx`
 - Create: `src/components/layout/AppShell.test.tsx`
 
-- [ ] **Step 1: Write shell test**
+- [x] **Step 1: Write shell test**
 
 Create `src/components/layout/AppShell.test.tsx`:
 
@@ -1056,13 +1056,13 @@ describe("AppShell", () => {
 });
 ```
 
-- [ ] **Step 2: Run shell test to verify it fails**
+- [x] **Step 2: Run shell test to verify it fails**
 
 Run: `pnpm test -- src/components/layout/AppShell.test.tsx`
 
 Expected: FAIL because shell files do not exist.
 
-- [ ] **Step 3: Implement layout components**
+- [x] **Step 3: Implement layout components**
 
 Create `src/components/layout/Navigation.tsx`:
 
@@ -1156,7 +1156,7 @@ export function AppShell({ activeView, onViewChange, child, children }: { active
 }
 ```
 
-- [ ] **Step 4: Wire shell into App**
+- [x] **Step 4: Wire shell into App**
 
 Replace `src/App.tsx` with:
 
@@ -1176,13 +1176,13 @@ export default function App() {
 }
 ```
 
-- [ ] **Step 5: Run shell test**
+- [x] **Step 5: Run shell test**
 
 Run: `pnpm test -- src/components/layout/AppShell.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/App.tsx src/components/layout
@@ -1197,7 +1197,7 @@ git commit -m "feat: add app shell navigation"
 - Create: `src/components/records/RecordComposer.tsx`
 - Create: `src/components/records/RecordCard.test.tsx`
 
-- [ ] **Step 1: Write record card test**
+- [x] **Step 1: Write record card test**
 
 Create `src/components/records/RecordCard.test.tsx`:
 
@@ -1215,13 +1215,13 @@ describe("RecordCard", () => {
 });
 ```
 
-- [ ] **Step 2: Run component test to verify it fails**
+- [x] **Step 2: Run component test to verify it fails**
 
 Run: `pnpm test -- src/components/records/RecordCard.test.tsx`
 
 Expected: FAIL because record components do not exist.
 
-- [ ] **Step 3: Add RecordCard and filters**
+- [x] **Step 3: Add RecordCard and filters**
 
 Create `src/components/records/RecordCard.tsx`:
 
@@ -1278,7 +1278,7 @@ function FilterButton({ label, active, onClick }: { label: string; active: boole
 }
 ```
 
-- [ ] **Step 4: Add composer with type-specific inline forms**
+- [x] **Step 4: Add composer with type-specific inline forms**
 
 Create `src/components/records/RecordComposer.tsx`:
 
@@ -1343,13 +1343,13 @@ export function RecordComposer({ childId, initialType, onCancel, onSave }: { chi
 }
 ```
 
-- [ ] **Step 5: Run record component test**
+- [x] **Step 5: Run record component test**
 
 Run: `pnpm test -- src/components/records/RecordCard.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/records
@@ -1364,7 +1364,7 @@ git commit -m "feat: add record display and composer"
 - Modify: `src/App.tsx`
 - Create: `src/pages/HomePage.test.tsx`
 
-- [ ] **Step 1: Write home page test**
+- [x] **Step 1: Write home page test**
 
 Create `src/pages/HomePage.test.tsx`:
 
@@ -1383,13 +1383,13 @@ describe("HomePage", () => {
 });
 ```
 
-- [ ] **Step 2: Run page test to verify it fails**
+- [x] **Step 2: Run page test to verify it fails**
 
 Run: `pnpm test -- src/pages/HomePage.test.tsx`
 
 Expected: FAIL because pages do not exist.
 
-- [ ] **Step 3: Add HomePage**
+- [x] **Step 3: Add HomePage**
 
 Create `src/pages/HomePage.tsx`:
 
@@ -1434,7 +1434,7 @@ export function HomePage({ childId, records, onStartRecord }: { childId: string;
 }
 ```
 
-- [ ] **Step 4: Add TimelinePage**
+- [x] **Step 4: Add TimelinePage**
 
 Create `src/pages/TimelinePage.tsx`:
 
@@ -1466,7 +1466,7 @@ export function TimelinePage({ records, filter, onFilterChange }: { records: Bab
 }
 ```
 
-- [ ] **Step 5: Wire pages into App**
+- [x] **Step 5: Wire pages into App**
 
 Replace `src/App.tsx` with:
 
@@ -1505,13 +1505,13 @@ export default function App() {
 }
 ```
 
-- [ ] **Step 6: Run home page test**
+- [x] **Step 6: Run home page test**
 
 Run: `pnpm test -- src/pages/HomePage.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/App.tsx src/pages
@@ -1529,7 +1529,7 @@ git commit -m "feat: add home and timeline pages"
 - Modify: `src/App.tsx`
 - Create: `src/pages/DataPage.test.tsx`
 
-- [ ] **Step 1: Write data page test**
+- [x] **Step 1: Write data page test**
 
 Create `src/pages/DataPage.test.tsx`:
 
@@ -1548,13 +1548,13 @@ describe("DataPage", () => {
 });
 ```
 
-- [ ] **Step 2: Run data page test to verify it fails**
+- [x] **Step 2: Run data page test to verify it fails**
 
 Run: `pnpm test -- src/pages/DataPage.test.tsx`
 
 Expected: FAIL because data page does not exist.
 
-- [ ] **Step 3: Add data components**
+- [x] **Step 3: Add data components**
 
 Create `src/components/data/GrowthChart.tsx`:
 
@@ -1633,7 +1633,7 @@ export function VaccineList({ records }: { records: BabyRecord[] }) {
 }
 ```
 
-- [ ] **Step 4: Add DataPage and ProfilePage**
+- [x] **Step 4: Add DataPage and ProfilePage**
 
 Create `src/pages/DataPage.tsx`:
 
@@ -1687,7 +1687,7 @@ export function ProfilePage({ child, onSave, onExport }: { child: Child; onSave:
 }
 ```
 
-- [ ] **Step 5: Wire data and profile into App**
+- [x] **Step 5: Wire data and profile into App**
 
 Add imports to `src/App.tsx`:
 
@@ -1703,13 +1703,13 @@ Replace the fallback page block with:
       {!composerType && app.activeView === "profile" && app.child ? <ProfilePage child={app.child} onSave={app.updateChild} onExport={app.exportJson} /> : null}
 ```
 
-- [ ] **Step 6: Run data page test**
+- [x] **Step 6: Run data page test**
 
 Run: `pnpm test -- src/pages/DataPage.test.tsx`
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/components/data src/pages src/App.tsx
@@ -1721,25 +1721,25 @@ git commit -m "feat: add data profile and export views"
 **Files:**
 - Modify as needed after verification.
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
 Run: `pnpm test`
 
 Expected: all tests pass.
 
-- [ ] **Step 2: Run production build**
+- [x] **Step 2: Run production build**
 
 Run: `pnpm build`
 
 Expected: TypeScript and Vite build pass.
 
-- [ ] **Step 3: Run app locally**
+- [x] **Step 3: Run app locally**
 
 Run: `pnpm dev`
 
 Expected: Vite prints a local URL, usually `http://localhost:5173/`.
 
-- [ ] **Step 4: Browser manual verification**
+- [x] **Step 4: Browser manual verification**
 
 Open `http://localhost:5173/` in the in-app browser and verify:
 
@@ -1754,7 +1754,7 @@ Open `http://localhost:5173/` in the in-app browser and verify:
 - Profile can update name and birthday.
 - JSON export downloads a file.
 
-- [ ] **Step 5: Fix any verification issues**
+- [x] **Step 5: Fix any verification issues**
 
 For each issue, make the smallest targeted code change, then rerun:
 
@@ -1765,7 +1765,7 @@ pnpm build
 
 Expected: both pass after fixes.
 
-- [ ] **Step 6: Commit final polish**
+- [x] **Step 6: Commit final polish**
 
 ```bash
 git add .
@@ -1778,3 +1778,21 @@ git commit -m "chore: verify baby growth app mvp"
 - Scope control: Login, cloud sync, collaboration, medical advice, reminders, video, and share links remain out of scope.
 - Type consistency: The plan consistently uses `Child`, `BabyRecord`, `RecordDraft`, `RecordType`, `PayloadByType`, `childId`, `occurredAt`, and `payload`.
 - Red-flag scan: The plan contains no unresolved markers. The first composer implements all record types in one focused file; later extraction into per-type form files can happen only if the file becomes difficult to maintain.
+
+## Completion Record
+
+- Status: implemented and merged into `main`.
+- Final merge style: fast-forward merge from `baby-growth-mvp`.
+- Final verification on `main`:
+  - `pnpm test`: passed, 9 test files and 60 tests.
+  - `pnpm lint`: passed.
+  - `pnpm build`: passed.
+- Manual browser verification:
+  - Home loaded as the working app surface.
+  - Growth record creation worked.
+  - Timeline displayed saved records.
+  - Data page reflected saved growth data.
+  - Profile save worked.
+  - Mobile viewport showed bottom navigation and mobile summary content.
+- Known follow-up:
+  - Vite reports a large chunk warning from the charting stack. It does not block the MVP, but data views can be code-split later if bundle size becomes important.
