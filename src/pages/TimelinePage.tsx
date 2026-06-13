@@ -22,8 +22,8 @@ export function TimelinePage({ records, filter, onFilterChange }: TimelinePagePr
 
   return (
     <div className="space-y-5">
-      <header className="space-y-3">
-        <div className="flex items-end justify-between gap-3">
+      <header className="space-y-4">
+        <div className="flex items-end justify-between gap-3 rounded-card border border-line bg-white p-5 shadow-panel">
           <div>
             <p className="text-sm text-muted">{records.length} 条记录</p>
             <h2 className="mt-1 text-2xl font-semibold text-ink">时间线</h2>
@@ -37,7 +37,7 @@ export function TimelinePage({ records, filter, onFilterChange }: TimelinePagePr
           {groups.map((group) => (
             <section key={group.date}>
               <h3 className="mb-3 text-sm font-semibold text-muted">{formatDateLabel(group.date)}</h3>
-              <div className="space-y-3">
+              <div className="space-y-3 border-l border-line pl-3">
                 {group.records.map((record) => (
                   <RecordCard key={record.id} record={record} />
                 ))}
@@ -46,7 +46,7 @@ export function TimelinePage({ records, filter, onFilterChange }: TimelinePagePr
           ))}
         </div>
       ) : (
-        <p className="rounded-card border border-line bg-white p-4 text-sm text-muted shadow-sm">
+        <p className="rounded-card border border-dashed border-line bg-white p-4 text-sm text-muted shadow-sm">
           还没有符合条件的记录。
         </p>
       )}

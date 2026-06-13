@@ -58,7 +58,7 @@ function parseDateTimeInput(date: string, time: string): number | undefined {
 }
 
 function fieldClassName() {
-  return "mt-1 w-full rounded-card border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
+  return "mt-1 w-full rounded-card border border-line bg-white px-3 py-2.5 text-sm text-ink shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 }
 
 function labelClassName() {
@@ -252,8 +252,13 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
   }
 
   return (
-    <form className="rounded-card border border-line bg-white p-4 shadow-sm" onSubmit={handleSubmit}>
-      <div className="flex flex-wrap gap-2" role="group" aria-label="记录类型">
+    <form className="rounded-card border border-line bg-white p-4 shadow-panel sm:p-5" onSubmit={handleSubmit}>
+      <div className="mb-4">
+        <p className="text-sm text-muted">添加记录</p>
+        <h2 className="mt-1 text-xl font-semibold text-ink">{recordMeta[type].label}</h2>
+      </div>
+
+      <div className="flex flex-wrap gap-2 rounded-card border border-line bg-mist/60 p-2" role="group" aria-label="记录类型">
         {recordTypeOrder.map((recordType) => {
           const meta = recordMeta[recordType];
           const Icon = meta.icon;
@@ -271,8 +276,8 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
               }}
               className={`flex min-h-10 items-center gap-2 rounded-card border px-3 text-sm font-medium transition ${
                 isActive
-                  ? "border-primary bg-primary text-white"
-                  : "border-line bg-white text-ink hover:border-primary/50 hover:text-primary"
+                  ? "border-primary bg-primary text-white shadow-sm"
+                  : "border-transparent bg-white/70 text-ink hover:border-primary/40 hover:text-primary"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -328,14 +333,14 @@ export function RecordComposer({ childId, initialType = "journal", onCancel, onS
           type="button"
           onClick={onCancel}
           disabled={isSaving}
-          className="min-h-10 rounded-card border border-line bg-white px-4 text-sm font-medium text-ink hover:border-primary/50 hover:text-primary"
+          className="min-h-10 rounded-card border border-line bg-white px-4 text-sm font-medium text-ink shadow-sm hover:border-primary/50 hover:text-primary"
         >
           取消
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="min-h-10 rounded-card bg-primary px-4 text-sm font-medium text-white hover:bg-primary/90"
+          className="min-h-10 rounded-card bg-primary px-4 text-sm font-medium text-white shadow-soft hover:bg-primary/90"
         >
           {isSaving ? "保存中" : "保存"}
         </button>

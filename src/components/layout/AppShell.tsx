@@ -12,11 +12,11 @@ export type AppShellProps = {
 
 export function AppShell({ activeView, onViewChange, child, children }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-cream text-ink md:flex">
+    <div className="min-h-screen bg-transparent text-ink md:flex">
       <Navigation activeView={activeView} onViewChange={onViewChange} />
-      <div className="min-w-0 flex-1 pb-20 md:pb-0">
+      <div className="min-w-0 flex-1 pb-24 md:pb-0">
         <ChildSummary child={child} />
-        <main className="mx-auto w-full max-w-6xl px-4 py-5 md:px-8 md:py-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 md:px-8 md:py-8">{children}</main>
       </div>
     </div>
   );

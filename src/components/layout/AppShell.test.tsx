@@ -24,6 +24,7 @@ describe("AppShell", () => {
     );
 
     expect(screen.getByRole("heading", { name: "小满" })).toBeInTheDocument();
+    expect(screen.getByText("宝宝成长")).toBeInTheDocument();
     expect(screen.getByText("页面内容")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "首页" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: "时间线" })).toHaveLength(2);

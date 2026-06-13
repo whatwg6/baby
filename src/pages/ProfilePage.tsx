@@ -74,17 +74,18 @@ export function ProfilePage({ child, onSave, onExport }: ProfilePageProps) {
 
   return (
     <section className="max-w-2xl space-y-5">
-      <header>
+      <header className="rounded-card border border-line bg-white p-5 shadow-panel">
         <p className="text-sm text-muted">宝宝信息与备份</p>
         <h2 className="mt-1 text-2xl font-semibold text-ink">宝宝档案</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">维护基础信息，或导出一份本地 JSON 备份。</p>
       </header>
 
-      <div className="rounded-card border border-line bg-white p-4 shadow-sm">
+      <div className="rounded-card border border-line bg-white p-4 shadow-panel sm:p-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-1 text-sm font-medium text-ink">
             昵称
             <input
-              className="min-h-11 rounded-card border border-line px-3 py-2 text-ink outline-none focus:border-primary"
+              className="min-h-11 rounded-card border border-line px-3 py-2 text-ink shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               value={draft.name}
               onChange={(event) => setDraft((current) => ({ ...current, name: event.target.value }))}
             />
@@ -94,7 +95,7 @@ export function ProfilePage({ child, onSave, onExport }: ProfilePageProps) {
             生日
             <input
               type="date"
-              className="min-h-11 rounded-card border border-line px-3 py-2 text-ink outline-none focus:border-primary"
+              className="min-h-11 rounded-card border border-line px-3 py-2 text-ink shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               value={draft.birthday}
               onChange={(event) => setDraft((current) => ({ ...current, birthday: event.target.value }))}
             />
@@ -106,7 +107,7 @@ export function ProfilePage({ child, onSave, onExport }: ProfilePageProps) {
             type="button"
             onClick={handleSave}
             disabled={isSaving}
-            className="rounded-card bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
+            className="rounded-card bg-primary px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:bg-primary/90"
           >
             {isSaving ? "保存中..." : "保存档案"}
           </button>
@@ -114,14 +115,14 @@ export function ProfilePage({ child, onSave, onExport }: ProfilePageProps) {
             type="button"
             onClick={handleExport}
             disabled={isExporting}
-            className="rounded-card border border-line px-4 py-2 text-sm font-semibold text-muted transition hover:border-primary/50 hover:text-primary"
+            className="rounded-card border border-line bg-white px-4 py-2 text-sm font-semibold text-muted shadow-sm transition hover:border-primary/50 hover:text-primary"
           >
             {isExporting ? "导出中..." : "导出 JSON"}
           </button>
         </div>
 
         {status ? (
-          <p className="mt-3 rounded-card bg-cream p-3 text-sm text-muted" role="status">
+          <p className="mt-3 rounded-card border border-line bg-mist p-3 text-sm text-muted" role="status">
             {status}
           </p>
         ) : null}

@@ -20,7 +20,7 @@ export function SleepSummary({ records }: SleepSummaryProps) {
   const summary = buildSleepSummary(records);
 
   return (
-    <section className="rounded-card border border-line bg-white p-4 shadow-sm">
+    <section className="rounded-card border border-line bg-white p-4 shadow-panel sm:p-5">
       <p className="text-sm text-muted">按已记录睡眠计算</p>
       <h2 className="mt-1 text-lg font-semibold text-ink">睡眠概览</h2>
 
@@ -36,7 +36,7 @@ export function SleepSummary({ records }: SleepSummaryProps) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-card bg-cream p-3">
+    <div className="rounded-card border border-line bg-mist/70 p-3">
       <p className="text-xs text-muted">{label}</p>
       <p className="mt-1 break-words text-xl font-semibold text-ink">{value}</p>
     </div>

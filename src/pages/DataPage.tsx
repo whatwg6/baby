@@ -10,9 +10,12 @@ export type DataPageProps = {
 export function DataPage({ records }: DataPageProps) {
   return (
     <div className="space-y-5">
-      <header>
+      <header className="rounded-card border border-line bg-white p-5 shadow-panel">
         <p className="text-sm text-muted">结构化记录</p>
         <h2 className="mt-1 text-2xl font-semibold text-ink">数据</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+          趋势、睡眠和疫苗记录会根据日常记录自动汇总，方便快速检查最近状态。
+        </p>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">

@@ -18,7 +18,7 @@ const filterItems = [
 
 export function RecordFilters({ value, onChange }: RecordFiltersProps) {
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="记录类型筛选">
+    <div className="flex flex-wrap gap-2 rounded-card border border-line bg-white p-2 shadow-sm" role="group" aria-label="记录类型筛选">
       {filterItems.map((item) => {
         const isActive = value === item.value;
 
@@ -28,10 +28,10 @@ export function RecordFilters({ value, onChange }: RecordFiltersProps) {
             type="button"
             aria-pressed={isActive}
             onClick={() => onChange(item.value)}
-            className={`min-h-10 rounded-card border px-3 text-sm font-medium transition ${
+            className={`min-h-9 rounded-card border px-3 text-sm font-medium transition ${
               isActive
-                ? "border-primary bg-primary text-white"
-                : "border-line bg-white text-ink hover:border-primary/50 hover:text-primary"
+                ? "border-primary bg-primary text-white shadow-sm"
+                : "border-transparent bg-transparent text-muted hover:bg-mist hover:text-ink"
             }`}
           >
             {item.label}
